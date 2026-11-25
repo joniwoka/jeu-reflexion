@@ -20,9 +20,13 @@ const GAL=[
 {id:'g6',t:'Village sous la lune',k:'village',cost:90}];
 const BG={night:buildBG('night'),day:buildBG('day')};
 const cv=$('#cv'),cx=cv.getContext('2d');
-let T=0,mode='title',kind='slime',edead=false,edie=0,atk=0,eatk=0,hflash=0,eflash=0,shk=0,fl=[],ehp=1,playing=null;
+let T=0,mode='title',kind='slime',edead=false,edie=0,atk=0,eatk=0,hflash=0,eflash=0,shk=0,walk=0,fl=[],ehp=1,playing=null,run=null;
 const CL=[{x:20,y:14,s:3,v:.12},{x:150,y:30,s:2,v:.18},{x:260,y:8,s:3,v:.09},{x:90,y:50,s:2,v:.22}];
 function lunge(a){return Math.round(Math.sin((1-a/22)*Math.PI)*120)}
+function heroState(){const hp=run?run.hp:4;
+if(mode==='win')return{pose:'win',t:T};if(mode==='over')return{pose:'dead',t:T};
+if(mode==='quiz'){if(atk>0)return{pose:'attack',p:1-atk/22,t:T};if(hflash>0)return{pose:'hurt',t:T};if(walk>0)return{pose:'walk',t:T};if(edead)return{pose:'cheer',t:T};if(hp<=1)return{pose:'weak',t:T};if(hp===2)return{pose:'tired',t:T};return{pose:'ready',t:T}}
+return{pose:'idle',t:T,glow:true}}
 function scene(){T++;const th=(mode==='shop'||mode==='gal')?'day':'night';
 cx.save();if(shk>0){cx.translate(Math.round(Math.random()*6-3),Math.round(Math.random()*4-2));shk--}
 cx.drawImage(BG[th],0,0);
@@ -30,14 +34,15 @@ CL.forEach(c=>cloud(cx,Math.floor((c.x+T*c.v)%(W+90))-45,c.y,c.s,th==='night'?'#
 if(th==='night')for(let i=0;i<40;i++)if(((T>>4)+i)%6)R(cx,Math.floor(rnd(i)*W),Math.floor(rnd(i+9)*70),1,1,'#fff');
 const bob=Math.sin(T/14)>0?1:0;
 if(mode==='quiz'||mode==='over'||mode==='win'){
-const hx=36+(atk>0?lunge(atk):0)+(hflash>0?-4:0);
-cx.globalAlpha=hflash>0&&T%4<2?.35:1;drawHero(cx,hx,42+bob,2,atk>0);cx.globalAlpha=1;
-if(!edead||edie>0){const E=ENM[kind],ex=312-E.w*2+(eatk>0?-lunge(eatk):0)+(eflash>0?Math.round(Math.random()*6-3):0),ey=134-E.h*2+(edead?-(30-edie):0)+(bob?0:1);
+const hx=36-Math.round(walk*1.3)+(atk>0?lunge(atk):0)+(hflash>0?-4:0);
+cx.globalAlpha=hflash>0&&T%4<2?.35:1;drawHero(cx,hx,42,2,heroState());cx.globalAlpha=1;
+if(!edead||edie>0){const E=ENM[kind],ex=312-E.w*2+walk*2+(eatk>0?-lunge(eatk):0)+(eflash>0?Math.round(Math.random()*6-3):0),ey=134-E.h*2+(edead?-(30-edie):0)+(bob?0:1);
 cx.globalAlpha=edead?edie/30:(eflash>0&&T%4<2?.4:1);E.f(cx,ex,ey,2);cx.globalAlpha=1;
 if(!edead){R(cx,ex-1,ey-13,E.w*2+2,7,'#0c0c24');R(cx,ex,ey-12,E.w*2,5,'#601010');R(cx,ex,ey-12,Math.max(0,Math.round(E.w*2*ehp)),5,'#e83030')}}
 if(atk>0&&atk<14&&atk>6)for(let k=0;k<9;k++)R(cx,176+k*7,60+k*7,4,4,'#fff');
-if(atk>0)atk--;if(eatk>0)eatk--;if(hflash>0)hflash--;if(eflash>0)eflash--;if(edie>0)edie--;
-}else{drawHero(cx,126,42+bob,2,true)}
+if(atk>0)atk--;if(eatk>0)eatk--;if(hflash>0)hflash--;if(eflash>0)eflash--;if(edie>0)edie--;if(walk>0)walk--;
+if(mode==='quiz'&&run&&run.hp===1){cx.fillStyle='rgba(200,0,0,'+(.07+.05*Math.sin(T/9)).toFixed(3)+')';cx.fillRect(0,0,W,H)}
+}else{drawHero(cx,126,42,2,heroState())}
 fl=fl.filter(f=>f.life>0);fl.forEach(f=>{f.life--;f.y-=.6;cx.font='bold 20px sans-serif';cx.fillStyle='#000';cx.fillText(f.t,f.x+1,f.y+1);cx.fillStyle=f.c;cx.fillText(f.t,f.x,f.y)});
 cx.restore();requestAnimationFrame(scene)}
 const scr=$('#screen');
@@ -49,11 +54,10 @@ function set(...els){scr.innerHTML='';els.forEach(e=>scr.appendChild(e));window.
 function title(){mode='title';hud();play('title');
 set(box(`<h2>⚔ Quête du Savoir ⚔</h2>Réponds aux questions pour vaincre les monstres et gagner de l'or. Dépense-le en musiques et en illustrations.<div class='dim'>Meilleur score : ${S.best} · ${QUESTIONS.length} questions</div>`),
 btn('⚔ Nouvelle quête',startQuiz,'menu'),btn('♪ Salle de musique',()=>music(),'menu'),btn('🖼 Galerie',()=>gallery(),'menu'),btn('⚙ Options',options,'menu'))}
-let run;
 function startQuiz(){const order=QUESTIONS.map((_,i)=>i).sort(()=>Math.random()-.5).slice(0,15);run={order,i:0,hp:4,ok:0,streak:0,earned:0};mode='quiz';play('quiz');next()}
 function hearts(){const h=Math.max(run.hp,0);return '♥'.repeat(h)+'♡'.repeat(4-h)}
 function next(){if(run.hp<=0||run.i>=run.order.length)return end();
-const q=QUESTIONS[run.order[run.i]];kind=run.i===run.order.length-1?'behemoth':run.i<5?(Math.random()<.5?'slime':'wolf'):['wolf','drake','behemoth'][Math.floor(Math.random()*3)];edead=false;edie=0;ehp=1;
+const q=QUESTIONS[run.order[run.i]];kind=run.i===run.order.length-1?'behemoth':run.i<5?(Math.random()<.5?'slime':'wolf'):['wolf','drake','behemoth'][Math.floor(Math.random()*3)];edead=false;edie=0;ehp=1;walk=45;
 const opts=q.a.map((t,i)=>({t,c:i===0})).sort(()=>Math.random()-.5);
 hud(`${hearts()} · ${run.i+1}/${run.order.length}`);
 const info=box(`<div class='dim'>${ENM[kind].name} bloque la route !</div>${esc(q.q)}`);
@@ -62,7 +66,7 @@ set(info,...bs)}
 function answer(o,bs,info,q){bs.forEach(b=>{b.disabled=true;if(b.dataset.c)b.classList.add('ok')});
 if(o.c){run.ok++;run.streak++;const g=10+Math.min(run.streak-1,5)*2;S.gold+=g;run.earned+=g;sfx('ok');setTimeout(()=>sfx('coin'),450);atk=22;setTimeout(()=>{eflash=16;shk=8;edead=true;edie=30;fl.push({t:'+'+g+' or',x:200,y:70,c:'#ffd830',life:50})},300);
 info.innerHTML+=`<hr><span class='gold'>Bonne réponse ! +${g} or</span>${run.streak>1?' (série ×'+run.streak+')':''}<br><span class='dim'>${esc(q.e)}</span>`}
-else{run.hp--;run.streak=0;sfx('ko');eatk=22;setTimeout(()=>{hflash=24;shk=10;fl.push({t:'-1 ♥',x:50,y:60,c:'#ff6060',life:50})},300);
+else{run.hp--;run.streak=0;sfx('ko');eatk=22;setTimeout(()=>{hflash=24;shk=10;fl.push({t:'-1 ♥',x:50,y:60,c:'#ff6060',life:50});if(run.hp===1)fl.push({t:'DANGER',x:120,y:40,c:'#ff4040',life:70})},300);
 bs.forEach(b=>{if(b.dataset.t===o.t)b.classList.add('ko')});
 info.innerHTML+=`<hr>Raté ! Bonne réponse : <span class='gold'>${esc(q.a[0])}</span><br><span class='dim'>${esc(q.e)}</span>`}
 save();hud(`${hearts()} · ${run.i+1}/${run.order.length}`);
