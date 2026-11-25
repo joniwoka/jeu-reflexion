@@ -20,14 +20,16 @@ const GAL=[
 {id:'g6',t:'Village sous la lune',k:'village',cost:90}];
 const BG={night:buildBG('night'),day:buildBG('day')};
 const cv=$('#cv'),cx=cv.getContext('2d');
-let T=0,mode='title',kind='slime',edead=false,edie=0,atk=0,eatk=0,hflash=0,eflash=0,shk=0,walk=0,fl=[],ehp=1,playing=null,run=null;
+let T=0,goT=0,mode='home',kind='slime',edead=false,edie=0,atk=0,eatk=0,hflash=0,eflash=0,shk=0,walk=0,fl=[],ehp=1,playing=null,run=null;
 const CL=[{x:20,y:14,s:3,v:.12},{x:150,y:30,s:2,v:.18},{x:260,y:8,s:3,v:.09},{x:90,y:50,s:2,v:.22}];
 function lunge(a){return Math.round(Math.sin((1-a/22)*Math.PI)*120)}
 function heroState(){const hp=run?run.hp:4;
 if(mode==='win')return{pose:'win',t:T};if(mode==='over')return{pose:'dead',t:T};
 if(mode==='quiz'){if(atk>0)return{pose:'attack',p:1-atk/22,t:T};if(hflash>0)return{pose:'hurt',t:T};if(walk>0)return{pose:'walk',t:T};if(edead)return{pose:'cheer',t:T};if(hp<=1)return{pose:'weak',t:T};if(hp===2)return{pose:'tired',t:T};return{pose:'ready',t:T}}
 return{pose:'idle',t:T,glow:true}}
-function scene(){T++;const th=(mode==='shop'||mode==='gal')?'day':'night';
+function scene(){T++;
+if(mode==='home'||mode==='gameover'){cx.save();if(mode==='home')drawHomeScene(cx,T);else{goT++;drawOverScene(cx,T,goT)}cx.restore();requestAnimationFrame(scene);return}
+const th=(mode==='shop'||mode==='gal')?'day':'night';
 cx.save();if(shk>0){cx.translate(Math.round(Math.random()*6-3),Math.round(Math.random()*4-2));shk--}
 cx.drawImage(BG[th],0,0);
 CL.forEach(c=>cloud(cx,Math.floor((c.x+T*c.v)%(W+90))-45,c.y,c.s,th==='night'?'#6c7cc8':'#ffffff'));
@@ -51,9 +53,12 @@ function hud(extra){$('#hud').innerHTML=`<span class='gold'>★ ${S.gold} or</sp
 function btn(label,fn,cls){const b=document.createElement('button');b.className='win '+(cls||'');b.innerHTML=label;b.onclick=()=>{ensure();fn(b)};return b}
 function box(html,cls){const d=document.createElement('div');d.className='win '+(cls||'');d.innerHTML=html;return d}
 function set(...els){scr.innerHTML='';els.forEach(e=>scr.appendChild(e));window.scrollTo(0,0)}
+function home(){mode='home';hud();play('home');
+set(box(`<h2>Bienvenue, aventurier</h2>Le Béhémoth rôde sur la route du savoir. Réponds juste pour le vaincre et gagner de l'or.<div class='dim'>Meilleur score : ${S.best} · ${QUESTIONS.length} questions</div>`),
+btn(`⚔ Commencer l'aventure`,title,'menu'))}
 function title(){mode='title';hud();play('title');
 set(box(`<h2>⚔ Quête du Savoir ⚔</h2>Réponds aux questions pour vaincre les monstres et gagner de l'or. Dépense-le en musiques et en illustrations.<div class='dim'>Meilleur score : ${S.best} · ${QUESTIONS.length} questions</div>`),
-btn('⚔ Nouvelle quête',startQuiz,'menu'),btn('♪ Salle de musique',()=>music(),'menu'),btn('🖼 Galerie',()=>gallery(),'menu'),btn('⚙ Options',options,'menu'))}
+btn('⚔ Nouvelle quête',startQuiz,'menu'),btn('♪ Salle de musique',()=>music(),'menu'),btn('🖼 Galerie',()=>gallery(),'menu'),btn('⚙ Options',options,'menu'),btn('🏠 Accueil',home,'menu'))}
 function startQuiz(){const order=QUESTIONS.map((_,i)=>i).sort(()=>Math.random()-.5).slice(0,15);run={order,i:0,hp:4,ok:0,streak:0,earned:0};mode='quiz';play('quiz');next()}
 function hearts(){const h=Math.max(run.hp,0);return '♥'.repeat(h)+'♡'.repeat(4-h)}
 function next(){if(run.hp<=0||run.i>=run.order.length)return end();
@@ -71,9 +76,13 @@ bs.forEach(b=>{if(b.dataset.t===o.t)b.classList.add('ko')});
 info.innerHTML+=`<hr>Raté ! Bonne réponse : <span class='gold'>${esc(q.a[0])}</span><br><span class='dim'>${esc(q.e)}</span>`}
 save();hud(`${hearts()} · ${run.i+1}/${run.order.length}`);
 scr.appendChild(btn('Suivant ▶',()=>{run.i++;next()},'menu'))}
-function end(){const win=run.hp>0;mode=win?'win':'over';edead=win;edie=0;S.best=Math.max(S.best,run.ok);save();play(win?'victory':'defeat');hud();
-set(box(`<h2>${win?'✦ Victoire ✦':'✝ Défaite ✝'}</h2>Score : ${run.ok}/${run.order.length}<br>Or gagné : <span class='gold'>${run.earned}</span><br>Total : <span class='gold'>${S.gold}</span>`),
+function end(){const win=run.hp>0;S.best=Math.max(S.best,run.ok);save();hud();
+if(win){mode='win';edead=true;edie=0;play('victory');
+set(box(`<h2>✦ Victoire ✦</h2>Score : ${run.ok}/${run.order.length}<br>Or gagné : <span class='gold'>${run.earned}</span><br>Total : <span class='gold'>${S.gold}</span>`),
 btn('↻ Rejouer',startQuiz,'menu'),btn('♪ Salle de musique',()=>music(),'menu'),btn('🖼 Galerie',()=>gallery(),'menu'),btn('◀ Menu principal',title,'menu'))}
+else{mode='gameover';goT=0;play('gameover');
+set(box(`<h2>✝ Game Over ✝</h2>Score : ${run.ok}/${run.order.length}<br>Or gagné : <span class='gold'>${run.earned}</span><br>Total : <span class='gold'>${S.gold}</span><div class='dim'>Meilleur score : ${S.best}</div>`),
+btn('↻ Réessayer',startQuiz,'menu'),btn('♪ Dépenser mon or',()=>music(),'menu'),btn('◀ Menu principal',title,'menu'))}}
 function music(){mode='shop';hud();if(!playing)play('shop');const els=[box(`<h2>♪ Salle de musique</h2><div class='dim'>Achète un morceau avec ton or, puis écoute-le ici. Les œuvres de Beethoven et la chanson traditionnelle sont du domaine public. Les autres sont des compositions originales.</div>`)];
 BON.forEach(m=>{const own=S.unlocked.includes(m.id);
 if(own){const on=playing===m.id;const d=box(`<b>${esc(m.t)}</b><div class='dim'>${esc(m.d)}</div>`);d.appendChild(btn(on?'■ Arrêter':'▶ Écouter',()=>{if(on){playing=null;play('shop')}else{playing=m.id;play(m.trk)}music()},on?'sel':'menu'));els.push(d)}
@@ -101,5 +110,5 @@ navigator.serviceWorker.register('sw.js').then(r=>{REG=r;
 r.addEventListener('updatefound',()=>{const w=r.installing;w&&w.addEventListener('statechange',()=>{
 if(w.state==='installed'&&navigator.serviceWorker.controller){const d=box('Nouvelle version prête !');d.appendChild(btn('Recharger',()=>{w.postMessage('SKIP')},'menu'));scr.prepend(d)}})})});
 let rl=false;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!rl){rl=true;location.reload()}})}
-document.addEventListener('click',()=>{ensure();if(S.music&&!cur)play(mode==='quiz'?'quiz':mode==='shop'||mode==='gal'?'shop':'title')});
-scene();title();
+document.addEventListener('click',()=>{ensure();if(S.music&&!cur)play(mode==='home'?'home':mode==='gameover'?'gameover':mode==='quiz'?'quiz':mode==='shop'||mode==='gal'?'shop':'title')});
+scene();home();
