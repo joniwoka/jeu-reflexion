@@ -25,6 +25,7 @@ h2{margin:0 0 8px;font-size:22px;color:#ffd830}
 hr{border:0;border-top:1px solid #8a9aff;margin:10px 0}
 .win .win{margin-top:12px}
 </style></head><body>
+<script>function showErr(m){var d=document.getElementById('err');if(!d){d=document.createElement('pre');d.id='err';d.style.cssText='position:fixed;left:0;right:0;bottom:0;max-height:40%;overflow:auto;margin:0;padding:8px;background:#600;color:#fff;font:12px monospace;z-index:99;white-space:pre-wrap';document.body.appendChild(d)}d.textContent+=m+' | '}window.addEventListener('error',function(e){showErr((e.message||'erreur')+' ('+String(e.filename||'').split('/').pop()+':'+e.lineno+')')});window.addEventListener('unhandledrejection',function(e){showErr('promesse: '+(e.reason&&e.reason.message||e.reason))})</script>
 <div id="app"><canvas id="cv" width="320" height="180"></canvas><div id="hud" class="win"></div><div id="screen"></div></div>
 <script src="version.js"></script><script src="questions.js"></script><script src="music.js"></script><script src="gfx.js"></script><script src="sprites.js"></script><script src="game.js"></script>
 </body></html>
