@@ -2,130 +2,93 @@ const $=s=>document.querySelector(s);
 const SAVE_KEY='qsv_save_v1';
 let S=Object.assign({gold:0,unlocked:[],best:0,music:true},JSON.parse(localStorage.getItem(SAVE_KEY)||'{}'));
 const save=()=>localStorage.setItem(SAVE_KEY,JSON.stringify(S));
-const MUSIC=[
-{id:'m1',title:'Overworld Theme',game:'Super Mario Bros.',by:'Koji Kondo',cost:30},
-{id:'m2',title:'Overworld Theme',game:'The Legend of Zelda',by:'Koji Kondo',cost:30},
-{id:'m3',title:'Terra\'s Theme',game:'Final Fantasy VI',by:'Nobuo Uematsu',cost:40},
-{id:'m4',title:'Corridors of Time',game:'Chrono Trigger',by:'Yasunori Mitsuda',cost:40},
-{id:'m5',title:'Green Hill Zone',game:'Sonic the Hedgehog',by:'Masato Nakamura',cost:50},
-{id:'m6',title:'One-Winged Angel',game:'Final Fantasy VII',by:'Nobuo Uematsu',cost:60},
-{id:'m7',title:'Megalovania',game:'Undertale',by:'Toby Fox',cost:60},
-{id:'m8',title:'Dragonborn',game:'Skyrim',by:'Jeremy Soule',cost:70}];
-const ART=[
-{id:'a1',game:'Tetris',kind:'blocks',cost:40},
-{id:'a2',game:'The Legend of Zelda',kind:'sword',cost:50},
-{id:'a3',game:'Super Mario Bros.',kind:'shroom',cost:50},
-{id:'a4',game:'Final Fantasy VI',kind:'esper',cost:60},
-{id:'a5',game:'Skyrim',kind:'dragon',cost:60},
-{id:'a6',game:'Pac-Man',kind:'pac',cost:40}];
-const PAL={k:'#101030',h:'#3858e8',s:'#f8c8a0',a:'#c8d0ec',b:'#2848b0',r:'#c82828',g:'#f8d838',w:'#fff',l:'#58d848',d:'#208828',e:'#ff4040',p:'#a050e0',y:'#ffe060'};
-const HERO=['....kkkkkk......','...khhhhhhk.....','..khhhhhhhhk....','..khhssssshk....','..kssksskssk....','..kssssssssk....','...kksssskk.....','..kraaaaaark....','..krraaggaarrk..','..krraaaaaarrk..','..kssbbbbbbssk..','...kkbbbbbbkk...','....kbbkkbbk....','....kbbk.kbbk...','....kkkk.kkkk...','................'];
-const SLIME=['................','................','......kkkk......','....kkllllkk....','...klllllllk....','..kllwkllwklk...','..klllkllklllk..','..kllllllllllk..','..kldllllllldk..','...kdddddddk....','....kkkkkkkk....','................','................','................','................','................'];
-const DRAKE=['................','.....kk..kk.....','....kppkkppk....','...kpppppppk....','..kpweppewpk....','..kpppkkpppk....','...kppppppk.....','..kkpppppppkk...','.kpkpppppppkpk..','.kp.kpppppk.pk..','....kppkkppk....','....kyyk.kyyk...','...kkkk..kkkk...','................','................','................'];
-function spr(ctx,map,x,y,sc,flip){for(let j=0;j<16;j++){const row=(map[j]||'').padEnd(16,'.');for(let i=0;i<16;i++){const c=row[flip?15-i:i];if(c!=='.'){ctx.fillStyle=PAL[c];ctx.fillRect(x+i*sc,y+j*sc,sc,sc)}}}}
-const cv=$('#cv'),cx=cv.getContext('2d');let T=0,shake=0,flash=0,mode='title',enemy=SLIME,enemyHP=1,heroHurt=0;
-function rnd(i){const x=Math.sin(i*127.1)*43758.5;return x-Math.floor(x)}
-function scene(){
-T++;
-['#0a0a38','#141860','#202888','#3040a8','#5060c0','#7080d0'].forEach((c,i)=>{cx.fillStyle=c;cx.fillRect(0,i*9,160,10)});
-for(let i=0;i<40;i++){cx.fillStyle=((T>>4)+i)%7?'#fff':'#889';cx.fillRect(Math.floor(rnd(i)*160),Math.floor(rnd(i+99)*40),1,1)}
-cx.fillStyle='#e8e8f8';cx.fillRect(130,8,8,8);cx.fillStyle='#bcc';cx.fillRect(133,10,3,3);
-for(let x=0;x<160;x++){const h=46+Math.sin(x*.07)*8+Math.sin(x*.19+2)*4;cx.fillStyle='#202060';cx.fillRect(x,h,1,60)}
-for(let x=0;x<160;x++){const h=56+Math.sin(x*.11+1)*5;cx.fillStyle='#183a58';cx.fillRect(x,h,1,40)}
-cx.fillStyle='#10102c';cx.fillRect(70,34,6,22);cx.fillRect(66,38,4,18);cx.fillRect(76,38,4,18);cx.fillRect(69,30,2,4);cx.fillRect(75,30,2,4);
-cx.fillStyle='#ffd838';cx.fillRect(72,42,2,3);
-for(let y=64;y<90;y++){cx.fillStyle=y<66?'#58b038':(y<76?'#388028':'#285820');cx.fillRect(0,y,160,1)}
-for(let x=0;x<160;x+=8){cx.fillStyle='#48a030';cx.fillRect(x+((T>>3)%2)*2,67,2,2);cx.fillStyle='#1c4818';cx.fillRect(x,80+(x%16?2:0),3,1)}
-const bob=Math.sin(T/12)>0?1:0;const hx=14+(heroHurt>0?-3:0);
+const BON=[
+{id:'b1',t:'Korobeiniki',trk:'bn1',cost:40,d:`Chanson folklorique russe (domaine public), rendue célèbre par Tetris. Arrangement original du jeu.`},
+{id:'b2',t:'Ode à la joie',trk:'bn2',cost:40,d:`Thème de Beethoven (domaine public), arrangé en style orchestral.`},
+{id:'b3',t:'Au clair de la lune',trk:'bn3',cost:40,d:`Berceuse traditionnelle française (domaine public), version flûte et harpe.`},
+{id:'b4',t:'Pour Élise',trk:'bn4',cost:50,d:`Pièce de Beethoven (domaine public), arrangée avec cordes et harpe.`},
+{id:'b5',t:`Plaine de l'aventure`,trk:'bn5',cost:70,d:`Composition originale, dans l'esprit des grandes plaines de RPG.`},
+{id:'b6',t:'Opéra de minuit',trk:'bn6',cost:80,d:`Composition originale, valse dramatique inspirée des scènes d'opéra de RPG.`},
+{id:'b7',t:'Cité des brumes',trk:'bn7',cost:80,d:`Composition originale, thème mystérieux de ville industrielle.`},
+{id:'b8',t:'Dernier donjon',trk:'bn8',cost:90,d:`Composition originale, combat final avec cuivres et percussions.`}];
+const GAL=[
+{id:'g1',t:`L'épée dans le roc`,k:'sword',cost:60},
+{id:'g2',t:'Château céleste',k:'castle',cost:70},
+{id:'g3',t:'Dragon pourpre',k:'dragon',cost:70},
+{id:'g4',t:'Vaisseau volant',k:'airship',cost:80},
+{id:'g5',t:'Grotte de cristal',k:'crystal',cost:80},
+{id:'g6',t:'Village sous la lune',k:'village',cost:90}];
+const BG={night:buildBG('night'),day:buildBG('day')};
+const cv=$('#cv'),cx=cv.getContext('2d');
+let T=0,mode='title',kind='slime',edead=false,edie=0,atk=0,eatk=0,hflash=0,eflash=0,shk=0,fl=[],ehp=1,playing=null;
+const CL=[{x:20,y:14,s:3,v:.12},{x:150,y:30,s:2,v:.18},{x:260,y:8,s:3,v:.09},{x:90,y:50,s:2,v:.22}];
+function lunge(a){return Math.round(Math.sin((1-a/22)*Math.PI)*120)}
+function scene(){T++;const th=(mode==='shop'||mode==='gal')?'day':'night';
+cx.save();if(shk>0){cx.translate(Math.round(Math.random()*6-3),Math.round(Math.random()*4-2));shk--}
+cx.drawImage(BG[th],0,0);
+CL.forEach(c=>cloud(cx,Math.floor((c.x+T*c.v)%(W+90))-45,c.y,c.s,th==='night'?'#6c7cc8':'#ffffff'));
+if(th==='night')for(let i=0;i<40;i++)if(((T>>4)+i)%6)R(cx,Math.floor(rnd(i)*W),Math.floor(rnd(i+9)*70),1,1,'#fff');
+const bob=Math.sin(T/14)>0?1:0;
 if(mode==='quiz'||mode==='over'||mode==='win'){
-spr(cx,HERO,hx,40+bob,2);
-if(enemyHP>0){const sx=shake>0?(Math.random()*4-2):0;cx.globalAlpha=flash>0&&(T%4<2)?.4:1;spr(cx,enemy,104+sx,38+(bob?0:1),3,true);cx.globalAlpha=1;
-cx.fillStyle='#000';cx.fillRect(100,26,52,5);cx.fillStyle='#fff';cx.fillRect(101,27,50,3);cx.fillStyle='#e03030';cx.fillRect(101,27,Math.max(0,50*enemyHP),3)}
-}else{spr(cx,HERO,hx+30,40+bob,3)}
-if(shake>0)shake--;if(flash>0)flash--;if(heroHurt>0)heroHurt--;
-requestAnimationFrame(scene)}
-let AC,master,timer,track=null,step=0,nextT=0;
-const mf=n=>440*Math.pow(2,(n-69)/12);
-function audio(){if(!AC){AC=new (window.AudioContext||window.webkitAudioContext)();master=AC.createGain();master.gain.value=.22;master.connect(AC.destination)}if(AC.state==='suspended')AC.resume()}
-function tone(f,t,d,type,v){const o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.value=f;g.gain.setValueAtTime(0.0001,t);g.gain.linearRampToValueAtTime(v,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(master);o.start(t);o.stop(t+d+.05)}
-const TRACKS={
-title:{bpm:64,chords:[[57,60,64],[53,57,60],[48,52,55],[55,59,62]],arp:[0,1,2,1,0,1,2,1],mel:[76,0,0,72,74,0,72,0,69,0,72,0,77,0,76,0,76,0,0,72,67,0,72,0,74,0,71,0,67,0,0,0]},
-quiz:{bpm:104,chords:[[57,60,64],[53,57,60],[55,59,62],[52,56,59]],arp:[0,2,1,2,0,2,1,2],mel:[0,0,81,0,0,79,0,0,0,0,77,0,0,76,0,0,0,0,79,0,0,76,0,0,0,0,75,0,76,0,0,0]}};
-function stop(){clearInterval(timer);track=null}
-function play(name){if(!S.music){stop();return}audio();if(track===name)return;stop();track=name;step=0;nextT=AC.currentTime+.1;
-timer=setInterval(()=>{const TR=TRACKS[track];if(!TR)return;const dt=60/TR.bpm/2;
-while(nextT<AC.currentTime+.3){const bar=Math.floor(step/8)%4,ch=TR.chords[bar],i=step%8;
-if(i===0){tone(mf(ch[0]-24),nextT,dt*7,'triangle',.5);tone(mf(ch[0]-12),nextT,dt*7,'sine',.15)}
-tone(mf(ch[TR.arp[i]]),nextT,dt*1.5,'square',.06);
-const m=TR.mel[step%32];if(m)tone(mf(m),nextT,dt*3,'triangle',.28);
-nextT+=dt;step++}},80)}
-function sfx(k){if(!S.music)return;audio();const t=AC.currentTime;
-if(k==='ok'){[72,76,79,84].forEach((n,i)=>tone(mf(n),t+i*.08,.18,'square',.12))}
-if(k==='ko'){tone(mf(48),t,.3,'sawtooth',.14);tone(mf(45),t+.15,.4,'sawtooth',.14)}
-if(k==='coin'){tone(mf(88),t,.08,'square',.1);tone(mf(95),t+.07,.2,'square',.1)}}
+const hx=36+(atk>0?lunge(atk):0)+(hflash>0?-4:0);
+cx.globalAlpha=hflash>0&&T%4<2?.35:1;drawHero(cx,hx,44+bob,2,atk>0);cx.globalAlpha=1;
+if(!edead||edie>0){const ex=(kind==='slime'?204:192)+(eatk>0?-lunge(eatk):0)+(eflash>0?Math.round(Math.random()*6-3):0),ey=(kind==='slime'?80:44)+(edead?-(30-edie):0)+(bob?0:1);
+cx.globalAlpha=edead?edie/30:(eflash>0&&T%4<2?.4:1);
+if(kind==='slime')drawSlime(cx,ex,ey,2,true);else drawDrake(cx,ex,ey,2,true);cx.globalAlpha=1;
+if(!edead){R(cx,ex-1,ey-13,82,7,'#0c0c24');R(cx,ex,ey-12,80,5,'#601010');R(cx,ex,ey-12,Math.max(0,Math.round(80*ehp)),5,'#e83030')}}
+if(atk>0&&atk<14&&atk>6)for(let k=0;k<9;k++)R(cx,196+k*5,66+k*6,4,4,'#fff');
+if(atk>0)atk--;if(eatk>0)eatk--;if(hflash>0)hflash--;if(eflash>0)eflash--;if(edie>0)edie--;
+}else{drawHero(cx,126,44+bob,2,true)}
+fl=fl.filter(f=>f.life>0);fl.forEach(f=>{f.life--;f.y-=.6;cx.font='bold 20px sans-serif';cx.fillStyle='#000';cx.fillText(f.t,f.x+1,f.y+1);cx.fillStyle=f.c;cx.fillText(f.t,f.x,f.y)});
+cx.restore();requestAnimationFrame(scene)}
 const scr=$('#screen');
 const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
-function hud(extra){$('#hud').innerHTML=`<span class='gold'>★ ${S.gold} Or</span><span>${extra||''}</span><span class='dim'>v${self.APP_VERSION}</span>`}
-function btn(label,fn,cls){const b=document.createElement('button');b.className='win '+(cls||'');b.innerHTML=label;b.onclick=()=>{audio();fn(b)};return b}
-function box(html){const d=document.createElement('div');d.className='win';d.innerHTML=html;return d}
-function set(...els){scr.innerHTML='';els.forEach(e=>scr.appendChild(e))}
-function title(){mode='title';enemyHP=1;hud();play('title');
-set(box(`<h2>⚔ Quête du Savoir ⚔</h2>Prouve ta culture vidéoludique. Chaque bonne réponse rapporte de l'or pour débloquer musiques et illustrations.<div class='dim'>Record : ${S.best}/${QUESTIONS.length}</div>`),
-btn('▶ Nouvelle quête',startQuiz),btn('♪ Trésor (musiques & art)',()=>shop('music')),btn('⚙ Options',options))}
+function hud(extra){$('#hud').innerHTML=`<span class='gold'>★ ${S.gold} or</span><span>${extra||''}</span><span class='dim'>v${self.APP_VERSION}</span>`}
+function btn(label,fn,cls){const b=document.createElement('button');b.className='win '+(cls||'');b.innerHTML=label;b.onclick=()=>{ensure();fn(b)};return b}
+function box(html,cls){const d=document.createElement('div');d.className='win '+(cls||'');d.innerHTML=html;return d}
+function set(...els){scr.innerHTML='';els.forEach(e=>scr.appendChild(e));window.scrollTo(0,0)}
+function title(){mode='title';hud();play('title');
+set(box(`<h2>⚔ Quête du Savoir ⚔</h2>Réponds aux questions pour vaincre les monstres et gagner de l'or. Dépense-le en musiques et en illustrations.<div class='dim'>Meilleur score : ${S.best} · ${QUESTIONS.length} questions</div>`),
+btn('⚔ Nouvelle quête',startQuiz,'menu'),btn('♪ Salle de musique',()=>music(),'menu'),btn('🖼 Galerie',()=>gallery(),'menu'),btn('⚙ Options',options,'menu'))}
 let run;
-function startQuiz(){run={order:QUESTIONS.map((_,i)=>i).sort(()=>Math.random()-.5),i:0,hp:3,ok:0,streak:0,earned:0};mode='quiz';play('quiz');next()}
-function hearts(){const h=Math.max(run.hp,0);return '♥ '+'♥'.repeat(h)+'♡'.repeat(3-h)}
-function next(){
-if(run.hp<=0||run.i>=run.order.length)return end();
-const q=QUESTIONS[run.order[run.i]];enemy=run.i%3===2?DRAKE:SLIME;enemyHP=1;
+function startQuiz(){const order=QUESTIONS.map((_,i)=>i).sort(()=>Math.random()-.5).slice(0,15);run={order,i:0,hp:4,ok:0,streak:0,earned:0};mode='quiz';play('quiz');next()}
+function hearts(){const h=Math.max(run.hp,0);return '♥'.repeat(h)+'♡'.repeat(4-h)}
+function next(){if(run.hp<=0||run.i>=run.order.length)return end();
+const q=QUESTIONS[run.order[run.i]];kind=Math.random()<.35?'drake':'slime';edead=false;edie=0;ehp=1;
 const opts=q.a.map((t,i)=>({t,c:i===0})).sort(()=>Math.random()-.5);
 hud(`${hearts()} · ${run.i+1}/${run.order.length}`);
-const info=box(esc(q.q));const L='ABCD';
-const bs=opts.map((o,k)=>{const b=btn(`${L[k]}. ${esc(o.t)}`,()=>answer(o,bs,info,q));b.dataset.c=o.c?'1':'';return b});
+const info=box(`<div class='dim'>${kind==='slime'?'Une gelée verte':'Un drake pourpre'} bloque la route !</div>${esc(q.q)}`);
+const bs=opts.map((o,k)=>{const b=btn(`<b class='gold'>${'ABCD'[k]}</b>&nbsp; ${esc(o.t)}`,()=>answer(o,bs,info,q),'ans');b.dataset.c=o.c?'1':'';b.dataset.t=o.t;return b});
 set(info,...bs)}
-function answer(o,bs,info,q){
-bs.forEach(b=>{b.disabled=true;if(b.dataset.c)b.classList.add('ok')});
-if(o.c){run.ok++;run.streak++;const g=10+Math.min(run.streak-1,5)*2;S.gold+=g;run.earned+=g;sfx('ok');setTimeout(()=>sfx('coin'),400);shake=14;flash=14;enemyHP=.2;
-info.innerHTML+=`<hr><span class='gold'>Bien joué ! +${g} or</span> ${run.streak>1?'(série ×'+run.streak+')':''}<br><span class='dim'>${esc(q.e)}</span>`}
-else{run.hp--;run.streak=0;sfx('ko');heroHurt=14;
-bs.forEach(b=>{if(b.innerHTML.slice(3)===esc(o.t))b.classList.add('ko')});
+function answer(o,bs,info,q){bs.forEach(b=>{b.disabled=true;if(b.dataset.c)b.classList.add('ok')});
+if(o.c){run.ok++;run.streak++;const g=10+Math.min(run.streak-1,5)*2;S.gold+=g;run.earned+=g;sfx('ok');setTimeout(()=>sfx('coin'),450);atk=22;setTimeout(()=>{eflash=16;shk=8;edead=true;edie=30;fl.push({t:'+'+g+' or',x:200,y:70,c:'#ffd830',life:50})},300);
+info.innerHTML+=`<hr><span class='gold'>Bonne réponse ! +${g} or</span>${run.streak>1?' (série ×'+run.streak+')':''}<br><span class='dim'>${esc(q.e)}</span>`}
+else{run.hp--;run.streak=0;sfx('ko');eatk=22;setTimeout(()=>{hflash=24;shk=10;fl.push({t:'-1 ♥',x:50,y:60,c:'#ff6060',life:50})},300);
+bs.forEach(b=>{if(b.dataset.t===o.t)b.classList.add('ko')});
 info.innerHTML+=`<hr>Raté ! Bonne réponse : <span class='gold'>${esc(q.a[0])}</span><br><span class='dim'>${esc(q.e)}</span>`}
-save();hud(hearts());
-scr.appendChild(btn('Suivant ▶',()=>{run.i++;next()}))}
-function end(){const win=run.hp>0;mode=win?'win':'over';enemyHP=win?0:1;S.best=Math.max(S.best,run.ok);save();play('title');hud();
+save();hud(`${hearts()} · ${run.i+1}/${run.order.length}`);
+scr.appendChild(btn('Suivant ▶',()=>{run.i++;next()},'menu'))}
+function end(){const win=run.hp>0;mode=win?'win':'over';edead=win;edie=0;S.best=Math.max(S.best,run.ok);save();play(win?'victory':'defeat');hud();
 set(box(`<h2>${win?'✦ Victoire ✦':'✝ Défaite ✝'}</h2>Score : ${run.ok}/${run.order.length}<br>Or gagné : <span class='gold'>${run.earned}</span><br>Total : <span class='gold'>${S.gold}</span>`),
-btn('↻ Rejouer',startQuiz),btn('♪ Dépenser mon or',()=>shop('music')),btn('Menu',title))}
-function yt(q){return 'https://www.youtube.com/results?search_query='+encodeURIComponent(q)}
-function shop(tab){mode='shop';hud();
-const tabs=document.createElement('div');tabs.className='row';
-tabs.append(btn('♪ Musiques',()=>shop('music'),tab==='music'?'sel':''),btn('🖼 Illustrations',()=>shop('art'),tab==='art'?'sel':''));
-const els=[tabs];
-if(tab==='music'){els.push(box(`<div class='dim'>Achat = déblocage de la fiche et du lien d'écoute officiel (extraits non intégrés : droits d'auteur).</div>`));
-MUSIC.forEach(m=>{const own=S.unlocked.includes(m.id);
-els.push(own?box(`<b>${esc(m.title)}</b><br>${esc(m.game)} · <span class='dim'>${esc(m.by)}</span><br><a class='lnk' target='_blank' rel='noopener' href='${yt(m.game+' '+m.title+' OST')}'>▶ Écouter sur YouTube</a>`):btn(`🔒 ${esc(m.game)} — <span class='gold'>${m.cost} or</span>`,()=>buy(m,tab)))})}
-else{els.push(box(`<div class='dim'>Vignettes pixel art originales, inspirées de ces jeux. Le lien mène aux visuels officiels.</div>`));
-ART.forEach(a=>{const own=S.unlocked.includes(a.id);
-if(own)els.push(box(`<div class='row'><canvas class='art' width='32' height='32' id='${a.id}'></canvas><div><b>${esc(a.game)}</b><br><a class='lnk' target='_blank' rel='noopener' href='https://www.google.com/search?tbm=isch&q=${encodeURIComponent(a.game+' official art')}'>Voir l'art officiel</a></div></div>`));
-else els.push(btn(`🔒 ${esc(a.game)} — <span class='gold'>${a.cost} or</span>`,()=>buy(a,tab)))})}
-els.push(btn('◀ Menu',title));set(...els);ART.forEach(a=>{const c=document.getElementById(a.id);if(c)drawArt(c.getContext('2d'),a.kind)})}
-function buy(it,tab){if(S.gold<it.cost){sfx('ko');alert('Pas assez d\'or ! Il te manque '+(it.cost-S.gold)+'.');return}S.gold-=it.cost;S.unlocked.push(it.id);save();sfx('coin');shop(tab)}
-function drawArt(c,k){const R=(x,y,w,h,col)=>{c.fillStyle=col;c.fillRect(x,y,w,h)};
-R(0,0,32,32,'#1a2a78');R(0,0,32,12,'#2840a0');R(0,24,32,8,'#2a6a30');
-if(k==='blocks'){[['#e83030',4,16],['#30c0e8',12,16],['#f8d838',20,16],['#a040e0',8,8],['#58d848',16,8]].forEach(([col,x,y])=>{R(x,y,8,8,col);R(x,y,8,1,'#fff8');R(x,y+7,8,1,'#0006')})}
-if(k==='sword'){R(15,4,3,17,'#dfe8ff');R(16,4,1,17,'#fff');R(11,20,11,3,'#f8d838');R(15,23,3,6,'#8a4a1a');R(12,26,9,2,'#6a3a14')}
-if(k==='shroom'){R(9,10,14,8,'#e83030');R(7,13,18,5,'#e83030');R(11,11,4,4,'#fff');R(18,12,4,4,'#fff');R(12,18,8,8,'#f8d8a0');R(14,20,1,2,'#000');R(18,20,1,2,'#000')}
-if(k==='esper'){R(13,6,6,6,'#60e0ff');R(10,12,12,8,'#a0f0ff');R(6,10,5,3,'#fff');R(21,10,5,3,'#fff');R(14,20,4,6,'#60e0ff');R(15,8,1,1,'#000');R(17,8,1,1,'#000')}
-if(k==='dragon'){R(8,14,16,8,'#6a2a8a');R(20,10,6,6,'#8a3aaa');R(4,8,8,6,'#8a3aaa');R(22,12,1,1,'#ff0');R(14,10,4,4,'#8a3aaa');R(2,20,8,2,'#6a2a8a');R(10,22,3,5,'#4a1a68');R(18,22,3,5,'#4a1a68')}
-if(k==='pac'){c.fillStyle='#ffe000';c.beginPath();c.arc(12,16,9,.5,Math.PI*2-.5);c.lineTo(12,16);c.fill();R(24,15,2,2,'#fff');R(28,15,2,2,'#fff')}}
-function options(){hud();
-set(box('<h2>Options</h2>Version installée : '+self.APP_VERSION),
-btn(`♪ Musique : ${S.music?'ON':'OFF'}`,()=>{S.music=!S.music;save();S.music?play('title'):stop();options()}),
-btn('⟳ Vérifier les mises à jour',checkUpdate),
-btn('✖ Effacer la sauvegarde',()=>{if(confirm('Tout effacer ?')){localStorage.removeItem(SAVE_KEY);location.reload()}}),
-btn('◀ Menu',title))}
+btn('↻ Rejouer',startQuiz,'menu'),btn('♪ Salle de musique',()=>music(),'menu'),btn('🖼 Galerie',()=>gallery(),'menu'),btn('◀ Menu principal',title,'menu'))}
+function music(){mode='shop';hud();if(!playing)play('shop');const els=[box(`<h2>♪ Salle de musique</h2><div class='dim'>Achète un morceau avec ton or, puis écoute-le ici. Les œuvres de Beethoven et la chanson traditionnelle sont du domaine public. Les autres sont des compositions originales.</div>`)];
+BON.forEach(m=>{const own=S.unlocked.includes(m.id);
+if(own){const on=playing===m.id;const d=box(`<b>${esc(m.t)}</b><div class='dim'>${esc(m.d)}</div>`);d.appendChild(btn(on?'■ Arrêter':'▶ Écouter',()=>{if(on){playing=null;play('shop')}else{playing=m.id;play(m.trk)}music()},on?'sel':'menu'));els.push(d)}
+else els.push(btn(`🔒 <b>${esc(m.t)}</b> <span class='gold'>${m.cost} or</span>`,()=>buy(m,music),'menu'))});
+els.push(btn('◀ Menu principal',()=>{playing=null;title()},'menu'));set(...els)}
+function gallery(){mode='gal';hud();if(!playing)play('shop');const els=[box(`<h2>🖼 Galerie</h2><div class='dim'>Illustrations pixel art originales, dessinées pour ce jeu.</div>`)];
+GAL.forEach(a=>{if(S.unlocked.includes(a.id)){const d=box(`<b>${esc(a.t)}</b><canvas class='art' id='${a.id}' width='160' height='90'></canvas>`);els.push(d)}
+else els.push(btn(`🔒 <b>${esc(a.t)}</b> <span class='gold'>${a.cost} or</span>`,()=>buy(a,gallery),'menu'))});
+els.push(btn('◀ Menu principal',()=>{playing=null;title()},'menu'));set(...els);GAL.forEach(a=>{const c=document.getElementById(a.id);if(c)artScene(c.getContext('2d'),a.k)})}
+function buy(it,back){if(S.gold<it.cost){sfx('ko');alert('Il te manque '+(it.cost-S.gold)+' or.');return}S.gold-=it.cost;S.unlocked.push(it.id);save();sfx('coin');back()}
+function options(){mode='title';hud();
+set(box(`<h2>⚙ Options</h2>Version installée : ${self.APP_VERSION}`),
+btn(`♪ Musique : ${S.music?'activée':'coupée'}`,()=>{S.music=!S.music;save();S.music?play('title'):stop();options()},'menu'),
+btn('⟳ Vérifier les mises à jour',checkUpdate,'menu'),
+btn('✖ Effacer la sauvegarde',()=>{if(confirm('Tout effacer ?')){localStorage.removeItem(SAVE_KEY);location.reload()}},'menu'),
+btn('◀ Menu principal',title,'menu'))}
 let REG;
-async function checkUpdate(){
-const info=box('Recherche…');scr.insertBefore(info,scr.children[1]);
+async function checkUpdate(){const info=box('Recherche…');scr.insertBefore(info,scr.children[1]);
 try{const t=await (await fetch('version.js?'+Date.now(),{cache:'no-store'})).text();const v=(t.match(/'([^']+)'/)||[])[1];
 if(REG)await REG.update();
 info.textContent=v&&v!==self.APP_VERSION?`Nouvelle version ${v} trouvée, installation…`:'Tu as la dernière version.'}
@@ -133,7 +96,7 @@ catch(e){info.textContent='Hors ligne ou erreur réseau.'}}
 if('serviceWorker' in navigator){
 navigator.serviceWorker.register('sw.js').then(r=>{REG=r;
 r.addEventListener('updatefound',()=>{const w=r.installing;w&&w.addEventListener('statechange',()=>{
-if(w.state==='installed'&&navigator.serviceWorker.controller){const d=box('Nouvelle version prête !');d.appendChild(btn('Recharger',()=>{w.postMessage('SKIP')}));scr.prepend(d)}})})});
+if(w.state==='installed'&&navigator.serviceWorker.controller){const d=box('Nouvelle version prête !');d.appendChild(btn('Recharger',()=>{w.postMessage('SKIP')},'menu'));scr.prepend(d)}})})});
 let rl=false;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!rl){rl=true;location.reload()}})}
-document.addEventListener('click',()=>{if(S.music&&!track)play(mode==='quiz'?'quiz':'title')});
+document.addEventListener('click',()=>{ensure();if(S.music&&!cur)play(mode==='quiz'?'quiz':mode==='shop'||mode==='gal'?'shop':'title')});
 scene();title();
