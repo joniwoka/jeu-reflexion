@@ -31,14 +31,13 @@ if(th==='night')for(let i=0;i<40;i++)if(((T>>4)+i)%6)R(cx,Math.floor(rnd(i)*W),M
 const bob=Math.sin(T/14)>0?1:0;
 if(mode==='quiz'||mode==='over'||mode==='win'){
 const hx=36+(atk>0?lunge(atk):0)+(hflash>0?-4:0);
-cx.globalAlpha=hflash>0&&T%4<2?.35:1;drawHero(cx,hx,44+bob,2,atk>0);cx.globalAlpha=1;
-if(!edead||edie>0){const ex=(kind==='slime'?204:192)+(eatk>0?-lunge(eatk):0)+(eflash>0?Math.round(Math.random()*6-3):0),ey=(kind==='slime'?80:44)+(edead?-(30-edie):0)+(bob?0:1);
-cx.globalAlpha=edead?edie/30:(eflash>0&&T%4<2?.4:1);
-if(kind==='slime')drawSlime(cx,ex,ey,2,true);else drawDrake(cx,ex,ey,2,true);cx.globalAlpha=1;
-if(!edead){R(cx,ex-1,ey-13,82,7,'#0c0c24');R(cx,ex,ey-12,80,5,'#601010');R(cx,ex,ey-12,Math.max(0,Math.round(80*ehp)),5,'#e83030')}}
-if(atk>0&&atk<14&&atk>6)for(let k=0;k<9;k++)R(cx,196+k*5,66+k*6,4,4,'#fff');
+cx.globalAlpha=hflash>0&&T%4<2?.35:1;drawHero(cx,hx,42+bob,2,atk>0);cx.globalAlpha=1;
+if(!edead||edie>0){const E=ENM[kind],ex=312-E.w*2+(eatk>0?-lunge(eatk):0)+(eflash>0?Math.round(Math.random()*6-3):0),ey=134-E.h*2+(edead?-(30-edie):0)+(bob?0:1);
+cx.globalAlpha=edead?edie/30:(eflash>0&&T%4<2?.4:1);E.f(cx,ex,ey,2);cx.globalAlpha=1;
+if(!edead){R(cx,ex-1,ey-13,E.w*2+2,7,'#0c0c24');R(cx,ex,ey-12,E.w*2,5,'#601010');R(cx,ex,ey-12,Math.max(0,Math.round(E.w*2*ehp)),5,'#e83030')}}
+if(atk>0&&atk<14&&atk>6)for(let k=0;k<9;k++)R(cx,176+k*7,60+k*7,4,4,'#fff');
 if(atk>0)atk--;if(eatk>0)eatk--;if(hflash>0)hflash--;if(eflash>0)eflash--;if(edie>0)edie--;
-}else{drawHero(cx,126,44+bob,2,true)}
+}else{drawHero(cx,126,42+bob,2,true)}
 fl=fl.filter(f=>f.life>0);fl.forEach(f=>{f.life--;f.y-=.6;cx.font='bold 20px sans-serif';cx.fillStyle='#000';cx.fillText(f.t,f.x+1,f.y+1);cx.fillStyle=f.c;cx.fillText(f.t,f.x,f.y)});
 cx.restore();requestAnimationFrame(scene)}
 const scr=$('#screen');
@@ -54,10 +53,10 @@ let run;
 function startQuiz(){const order=QUESTIONS.map((_,i)=>i).sort(()=>Math.random()-.5).slice(0,15);run={order,i:0,hp:4,ok:0,streak:0,earned:0};mode='quiz';play('quiz');next()}
 function hearts(){const h=Math.max(run.hp,0);return '♥'.repeat(h)+'♡'.repeat(4-h)}
 function next(){if(run.hp<=0||run.i>=run.order.length)return end();
-const q=QUESTIONS[run.order[run.i]];kind=Math.random()<.35?'drake':'slime';edead=false;edie=0;ehp=1;
+const q=QUESTIONS[run.order[run.i]];kind=run.i===run.order.length-1?'behemoth':run.i<5?(Math.random()<.5?'slime':'wolf'):['wolf','drake','behemoth'][Math.floor(Math.random()*3)];edead=false;edie=0;ehp=1;
 const opts=q.a.map((t,i)=>({t,c:i===0})).sort(()=>Math.random()-.5);
 hud(`${hearts()} · ${run.i+1}/${run.order.length}`);
-const info=box(`<div class='dim'>${kind==='slime'?'Une gelée verte':'Un drake pourpre'} bloque la route !</div>${esc(q.q)}`);
+const info=box(`<div class='dim'>${ENM[kind].name} bloque la route !</div>${esc(q.q)}`);
 const bs=opts.map((o,k)=>{const b=btn(`<b class='gold'>${'ABCD'[k]}</b>&nbsp; ${esc(o.t)}`,()=>answer(o,bs,info,q),'ans');b.dataset.c=o.c?'1':'';b.dataset.t=o.t;return b});
 set(info,...bs)}
 function answer(o,bs,info,q){bs.forEach(b=>{b.disabled=true;if(b.dataset.c)b.classList.add('ok')});
