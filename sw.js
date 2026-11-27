@@ -1,6 +1,6 @@
 importScripts('version.js');
 const CACHE='quete-savoir-'+self.APP_VERSION;
-const FILES=['./','index.html','game.js','ff4.js','menu.js','flee.js','ui.js','tac.js','mage.js','cm1.js','q_cm1b.js','cm2.js','chars2.js','items2.js','items3.js','qbanks.js','q_more.js','gfx.js','sprites.js','pix.js','scenes.js','music.js','music2.js','questions.js','questions2.js','q_video3.js','q_geo.js','q_geo2.js','q_hist.js','q_hist2.js','q_eng.js','version.js','manifest.json','icon.svg'];
+const FILES=['./','index.html','game.js','ff4.js','menu.js','flee.js','ui.js','tac.js','mage.js','cm1.js','q_cm1b.js','cm2.js','chars2.js','items2.js','items3.js','items4.js','qbanks.js','q_more.js','gfx.js','sprites.js','pix.js','scenes.js','music.js','music2.js','questions.js','questions2.js','q_video3.js','q_geo.js','q_geo2.js','q_hist.js','q_hist2.js','q_eng.js','version.js','manifest.json','icon.svg'];
 self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil(caches.open(CACHE).then(c=>Promise.all(FILES.map(f=>fetch(new Request(f,{cache:'reload'})).then(r=>r.ok?c.put(f,r):null).catch(()=>null)))))});
 self.addEventListener('message',e=>{if(e.data==='SKIP')self.skipWaiting()});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
